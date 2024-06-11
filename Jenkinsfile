@@ -10,9 +10,6 @@ pipeline {
     environment {
       def appVersion=""
     }
-    parameters {
-        choice(name: 'action', choices: ['Apply', 'Destroy'], description: 'Pick Choice')
-    }
     stages {
         stage('read the version'){
             steps{
@@ -30,6 +27,14 @@ pipeline {
                 ls -ltr
                 echo "application version: $appVersion"
               """
+            }
+        }
+        stage('Build'){
+            steps{
+                sh """
+                zip -q -r backend-${appVersion}.zip * -x Jenkinsfile -x backend-${appVersion}.zip
+                ls -ltr
+                """
             }
         }
     }
