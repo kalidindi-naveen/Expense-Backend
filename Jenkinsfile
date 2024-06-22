@@ -7,6 +7,9 @@ pipeline {
         disableConcurrentBuilds()
         ansiColor('xterm')
     }
+    parameters{
+        booleanParam(name: 'deploy', defaultValue: false, description: 'Toggle this value')
+    }
     environment {
       def appVersion=""
       nexusUrl = "nexus-private.step-into-iot.cloud:8081"
@@ -39,6 +42,18 @@ pipeline {
                 """
             }
         }
+        stage('Sonar Scan'){
+            environment {
+                scannerHome = tool 'sonar-6.0' //referring scanner CLI
+            }
+            steps {
+                script {
+                    withSonarQubeEnv('sonar-6.0') { //referring sonar server
+                        sh "${scannerHome}/bin/sonar-scanner"
+                    }
+                }
+            }
+        }
         stage('Nexus Artifact Upload'){
             steps{
                 script{
@@ -61,6 +76,11 @@ pipeline {
             }
         }
         stage('Deploy'){
+            when{
+                expression{
+                    params.deploy
+                }
+            }
             steps{
                 script{
                     def params = [
